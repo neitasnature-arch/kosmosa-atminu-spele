@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kosmosa atmiņu spēle</title>
+
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  color: white;
+
+  /* 🌌 PNG ZVAIGŽŅU FONS */
+  background-image: url("images/stars.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+h1 {
+  margin-top: 20px;
+  text-shadow: 2px 2px 6px black;
+}
+
+.score {
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+.start-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.game {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 10px;
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 10px;
+}
+
+.card {
+  background: rgba(20, 30, 70, 0.85);
+  height: 100px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.card.open,
+.card.matched {
+  background: #4caf50;
+}
+
+.card img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🚀 Kosmosa atmiņu spēle</h1>
+<div class="score" id="score">Punkti: 0</div>
+<button class="start-btn" id="startBtn">Sākt spēli</button>
+
+<div class="game" id="game"></div>
+
+<!-- 🎵 Skaņas -->
+<audio id="soundRight" src="sounds/right.mp3"></audio>
+<audio id="soundWrong" src="sounds/wrong.mp3"></audio>
+
+<script>
+const items = [
+  "Zeme","Saule","Plutons","Merkurs","Mēness",
+  "Venēra","Marss","Jupiters","Saturns",
+  "Urāns","Neptūns","asteroīds"
+];
+
+const images = {
+  Zeme: "images/zeme.png",
+  Saule: "images/saule.png",
+  Plutons: "images/plutons.png",
+  Merkurs: "images/merkurs.png",
+  Mēness: "images/meness.png",
+  Venēra: "images/venēra.png",
+  Marss: "images/marss.png",
+  Jupiters: "images/jupiters.png",
+  Saturns: "images/saturns.png",
+  Urāns: "images/uran.png",
+  Neptūns: "images/neptuns.png",
+  asteroīds: "images/asteroids.png"
+};
+
+let cards = [];
+let first = null;
+let lock = false;
+let score = 0;
+
+const game = document.getElementById("game");
+const scoreDiv = document.getElementById("score");
+const startBtn = document.getElementById("startBtn");
+const soundRight = document.getElementById("soundRight");
+const soundWrong = document.getElementById("soundWrong");
+
+function initGame() {
+  score = 0;
+  scoreDiv.textContent = "Punkti: 0";
+  game.innerHTML = "";
+  first = null;
+  lock = false;
+
+  cards = [];
+  items.forEach(item => {
+    cards.push({ type: "text", value: item });
+    cards.push({ type: "image", value: item });
+  });
+
+  cards.sort(() => Math.random() - 0.5);
+
+  cards.forEach(card => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.textContent = "?";
+
+    div.onclick = () => {
+      if (lock || div.classList.contains("open")) return;
+
+      div.classList.add("open");
+
+      if (card.type === "text") {
+        div.textContent = card.value;
+      } else {
+        div.innerHTML = `<img src="${images[card.value]}" alt="${card.value}">`;
+      }
+
+      if (!first) {
+        first = { div, card };
+      } else {
+        lock = true;
+        setTimeout(() => {
+          if (first.card.value === card.value &&
+              first.card.type !== card.type) {
+
+            div.classList.add("matched");
+            first.div.classList.add("matched");
+            score++;
+            scoreDiv.textContent = "Punkti: " + score;
+            soundRight.play();
+
+          } else {
+            div.classList.remove("open");
+            div.textContent = "?";
+            first.div.classList.remove("open");
+            first.div.textContent = "?";
+            soundWrong.play();
+          }
+
+          first = null;
+          lock = false;
+        }, 800);
+      }
+    };
+
+    game.appendChild(div);
+  });
+}
+
+startBtn.onclick = initGame;
+</script>
+
+</body>
+</html>
